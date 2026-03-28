@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}รายงาน - ระบบจัดการฟาร์มผัก{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1>รายงานฟาร์ม</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>จำนวนพืชที่เก็บเกี่ยว</h3>
+            <p class="stat-value">{{ total_crops }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>ปริมาณการเก็บเกี่ยว</h3>
+            <p class="stat-value">{{ "%.2f"|format(total_harvested) }} กก.</p>
+        </div>
+        <div class="stat-card">
+            <h3>มูลค่าคลังปัจจุบัน</h3>
+            <p class="stat-value">฿{{ "%.2f"|format(inventory_value) }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>จำนวนรายการคลัง</h3>
+            <p class="stat-value">{{ inventory_items|length }}</p>
+        </div>
+    </div>
+    
+    <h2>สรุปการผลิตพืช</h2>
+    {% if all_crops %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ชื่อพืช</th>
+                <th>วันที่ปลูก</th>
+                <th>วันที่เก็บเกี่ยว</th>
+                <th>จำนวนที่ปลูก</th>
+                <th>จำนวนที่เก็บเกี่ยว</th>
+                <th>สถานะ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for crop in all_crops %}
+            <tr>
+                <td>{{ crop.crop_name }}</td>
+                <td>{{ crop.planting_date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ crop.actual_harvest_date.strftime('%Y-%m-%d') if crop.actual_harvest_date else '-' }}</td>
+                <td>{{ crop.quantity_planted }} kg</td>
+                <td>{{ crop.quantity_harvested|default('-') }}</td>
+                <td><span class="status-badge {{ crop.status }}">{{ crop.status.title() }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No crop data available yet.</p>
+    {% endif %}
+    
+    <h2>สรุปคลังสินค้า</h2>
+    {% if inventory_items %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>สินค้า</th>
+                <th>จำนวน</th>
+                <th>หน่วย</th>
+                <th>ราคาต่อหน่วย</th>
+                <th>มูลค่ารวม</th>
+                <th>สถานะ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventory_items %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unit }}</td>
+                <td>${{ "%.2f"|format(item.price_per_unit) }}</td>
+                <td>${{ "%.2f"|format(item.quantity * item.price_per_unit) }}</td>
+                <td><span class="status-badge {{ item.status }}">{{ item.status.title().replace('_', ' ') }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No inventory items available yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

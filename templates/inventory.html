@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}คลังสินค้า - ระบบจัดการฟาร์มผัก{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1>คลังสินค้า</h1>
+        <p>มูลค่าคลังทั้งหมด: <strong>฿{{ "%.2f"|format(total_value) }}</strong></p>
+    </div>
+    
+    <div class="filter-bar">
+        <a href="{{ url_for('inventory', status='all') }}" class="btn {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">สินค้าที่พร้อมจำหน่าย</a>
+        <a href="{{ url_for('inventory', status='sold') }}" class="btn {% if status_filter == 'sold' %}btn-primary{% else %}btn-secondary{% endif %}">ขายแล้ว</a>
+        <a href="{{ url_for('inventory', status='expired') }}" class="btn {% if status_filter == 'expired' %}btn-primary{% else %}btn-secondary{% endif %}">หมดอายุ</a>
+    </div>
+    
+    {% if items and items.items|length > 0 %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ชื่อสินค้า</th>
+                <th>จำนวน</th>
+                <th>หน่วย</th>
+                <th>ราคาต่อหน่วย</th>
+                <th>มูลค่ารวม</th>
+                <th>วันที่เก็บเกี่ยว</th>
+                <th>วันหมดอายุ</th>
+                <th>สถานะ</th>
+                <th>การกระทำ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items.items %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>
+                    <input type="number" class="qty-input" value="{{ item.quantity }}" step="0.01" 
+                           data-item-id="{{ item.id }}" min="0">
+                </td>
+                <td>{{ item.unit }}</td>
+                <td>${{ "%.2f"|format(item.price_per_unit) }}</td>
+                <td>${{ "%.2f"|format(item.quantity * item.price_per_unit) }}</td>
+                <td>{{ item.harvest_date.strftime('%Y-%m-%d') if item.harvest_date else '-' }}</td>
+                <td>{{ item.expiry_date.strftime('%Y-%m-%d') if item.expiry_date else '-' }}</td>
+                <td>
+                    <select class="status-select" data-item-id="{{ item.id }}">
+                        <option value="in_stock" {% if item.status == 'in_stock' %}selected{% endif %}>In Stock</option>
+                        <option value="sold" {% if item.status == 'sold' %}selected{% endif %}>Sold</option>
+                        <option value="expired" {% if item.status == 'expired' %}selected{% endif %}>Expired</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-small save-btn" data-item-id="{{ item.id }}">บันทึก</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if items and items.pages > 1 %}
+    <div class="pagination">
+        {% if items.has_prev %}
+        <a href="{{ url_for('inventory', page=items.prev_num, status=status_filter) }}" class="btn btn-secondary">« Previous</a>
+        {% endif %}
+        
+        <span class="page-info">หน้า {{ items.page }} จาก {{ items.pages }}</span>
+        
+        {% if items.has_next %}
+        <a href="{{ url_for('inventory', page=items.next_num, status=status_filter) }}" class="btn btn-secondary">Next »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <p>ยังไม่มีสินค้าคงคลัง เก็บเกี่ยวพืชเพื่อเพิ่มรายการในคลัง</p>
+        <a href="{{ url_for('crop_management') }}" class="btn btn-primary">ไปที่แปลง</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.save-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const itemId = this.dataset.itemId;
+        const qtyInput = document.querySelector(`input[data-item-id="${itemId}"]`);
+        const statusSelect = document.querySelector(`select[data-item-id="${itemId}"]`);
+        
+        fetch(`/inventory/${itemId}/update-quantity`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                quantity: parseFloat(qtyInput.value) || 0,
+                status: statusSelect.value
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert('Inventory updated successfully!');
+              } else {
+                  alert('Error: ' + (data.error || 'Failed to update'));
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('Error updating inventory: ' + error.message);
+          });
+    });
+});
+</script>
+{% endblock %}

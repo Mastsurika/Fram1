@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}จัดการพืช - ระบบจัดการฟาร์มผัก{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1>จัดการพืช</h1>
+        <a href="{{ url_for('add_field') }}" class="btn btn-primary">+ เพิ่มแปลงใหม่</a>
+    </div>
+    
+    {% if fields %}
+    <div class="fields-grid">
+        {% for field in fields %}
+        <div class="field-card">
+            <h3>{{ field.field_name }}</h3>
+            <p><strong>Area:</strong> {{ field.field_area }} m²</p>
+            <p><strong>Location:</strong> {{ field.location }}</p>
+            <p><strong>Created:</strong> {{ field.created_at.strftime('%Y-%m-%d') }}</p>
+            <a href="{{ url_for('add_crop_round', field_id=field.id) }}" class="btn btn-secondary">Add Crop Round</a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <h2 style="margin-top: 40px;">รอบการปลูกที่กำลังปลูก</h2>
+    {% if active_crops %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>แปลง</th>
+                <th>ชื่อพืช</th>
+                <th>วันที่ปลูก</th>
+                <th>วันที่คาดว่าเก็บเกี่ยว</th>
+                <th>สถานะ</th>
+                <th>การกระทำ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for crop in active_crops %}
+            <tr>
+                <td>
+                    {% set crop_field = fields|selectattr('id', 'equalto', crop.field_id)|first %}
+                    {{ crop_field.field_name if crop_field else 'Unknown' }}
+                </td>
+                <td>{{ crop.crop_name }}</td>
+                <td>{{ crop.planting_date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ crop.estimated_harvest_date.strftime('%Y-%m-%d') }}</td>
+                <td><span class="status-badge {{ crop.status }}">{{ crop.status.title() }}</span></td>
+                <td>
+                    <a href="{{ url_for('view_crop', crop_id=crop.id) }}" class="btn btn-small">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>ยังไม่มีรอบการปลูก ช่วยเพิ่มพืชเพื่อเริ่มต้น!</p>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <p>ยังไม่มีแปลงปลูก กรุณาเพิ่มแปลงใหม่</p>
+        <a href="{{ url_for('add_field') }}" class="btn btn-primary">เพิ่มแปลงแรก</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}บันทึกกิจกรรม - ระบบจัดการฟาร์มผัก{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1>บันทึกกิจกรรม</h1>
+    
+    {% if activities.items %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>วันที่</th>
+                <th>พืช</th>
+                <th>ประเภทกิจกรรม</th>
+                <th>รายละเอียด</th>
+                <th>จำนวน</th>
+                <th>หน่วย</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in activities.items %}
+            <tr>
+                <td>{{ activity.activity_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                    <a href="{{ url_for('view_crop', crop_id=activity.crop_round_id) }}">
+                        ดูแปลง
+                    </a>
+                </td>
+                <td><span class="badge badge-{{ activity.activity_type }}">{{ activity.activity_type.title() }}</span></td>
+                <td>{{ activity.description or '-' }}</td>
+                <td>{{ activity.quantity_used or '-' }}</td>
+                <td>{{ activity.unit or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="pagination">
+        {% if activities.has_prev %}
+        <a href="{{ url_for('activity_log', page=activities.prev_num) }}" class="btn btn-secondary">« Previous</a>
+        {% endif %}
+        
+        <span class="page-info">หน้า {{ activities.page }} จาก {{ activities.pages }}</span>
+        
+        {% if activities.has_next %}
+        <a href="{{ url_for('activity_log', page=activities.next_num) }}" class="btn btn-secondary">Next »</a>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>ยังไม่มีบันทึกกิจกรรม กรุณาเริ่มบันทึกกิจกรรมของการปลูก</p>
+        <a href="{{ url_for('crop_management') }}" class="btn btn-primary">ไปที่แปลง</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

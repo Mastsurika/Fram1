@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}แดชบอร์ด - ระบบจัดการฟาร์มผัก{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>สวัสดี {{ session.username }}! 🌾</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>จำนวนแปลง</h3>
+            <p class="stat-value">{{ fields }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>พืชกำลังปลูก</h3>
+            <p class="stat-value">{{ active_crops }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>จำนวนสินค้าในคลัง</h3>
+            <p class="stat-value">{{ inventory_count }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>รายรับรวม</h3>
+            <p class="stat-value">฿{{ "%.2f"|format(total_income) }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>รายจ่ายรวม</h3>
+            <p class="stat-value">฿{{ "%.2f"|format(total_expense) }}</p>
+        </div>
+    </div>
+    
+    {% if alerts %}
+    <div class="alerts-section">
+        <h2>⚠️ การแจ้งเตือนการเก็บเกี่ยว</h2>
+        <div class="alert-list">
+            {% for alert in alerts %}
+            <div class="alert-item">
+                <span class="alert-crop">{{ alert.crop_name }}</span>
+                <span class="alert-date">พร้อมเก็บ: {{ alert.estimated_harvest_date.strftime('%Y-%m-%d') }}</span>
+                <a href="{{ url_for('view_crop', crop_id=alert.id) }}" class="btn btn-small">ดูรายละเอียด</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="activities-section">
+        <h2>กิจกรรมล่าสุด</h2>
+        {% if recent_activities %}
+        <div class="activity-list">
+            {% for activity in recent_activities %}
+            <div class="activity-item">
+                <span class="activity-type {{ activity.activity_type }}">{{ activity.activity_type.title() }}</span>
+                <span class="activity-description">{{ activity.description or 'ไม่มีคำอธิบาย' }}</span>
+                <span class="activity-date">{{ activity.activity_date.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>ยังไม่มีบันทึกกิจกรรม</p>
+        {% endif %}
+    </div>
+    
+    <div class="quick-actions">
+        <h2>เมนูด่วน</h2>
+        <a href="{{ url_for('add_field') }}" class="btn btn-primary">เพิ่มแปลง</a>
+        <a href="{{ url_for('crop_management') }}" class="btn btn-secondary">จัดการพืช</a>
+        <a href="{{ url_for('alerts') }}" class="btn btn-secondary">ดูการแจ้งเตือน</a>
+        <a href="{{ url_for('reports') }}" class="btn btn-secondary">ดูรายงาน</a>
+    </div>
+</div>
+{% endblock %}

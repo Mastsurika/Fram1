@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ crop.crop_name }} - ระบบจัดการฟาร์มผัก{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="page-header">
+        <h1>{{ crop.crop_name }}</h1>
+        <p>{{ field.field_name }} - {{ field.location }}</p>
+    </div>
+    
+    <div class="crop-details-grid">
+        <div class="detail-card">
+            <h3>ข้อมูลการปลูก</h3>
+            <p><strong>แปลง:</strong> {{ field.field_name }}</p>
+            <p><strong>ชื่อพืช:</strong> {{ crop.crop_name }}</p>
+            <p><strong>วันที่ปลูก:</strong> {{ crop.planting_date.strftime('%Y-%m-%d') }}</p>
+            <p><strong>วันที่คาดว่าจะเก็บเกี่ยว:</strong> {{ crop.estimated_harvest_date.strftime('%Y-%m-%d') }}</p>
+            <p><strong>เหลือเวลาเก็บเกี่ยว:</strong> <strong>{{ days_until_harvest }}</strong> วัน</p>
+            <p><strong>จำนวนปลูก:</strong> {{ crop.quantity_planted }} กก.</p>
+            <p><strong>สถานะ:</strong> <span class="status-badge {{ crop.status }}">{{ crop.status.title() }}</span></p>
+            {% if crop.notes %}
+            <p><strong>หมายเหตุ:</strong> {{ crop.notes }}</p>
+            {% endif %}
+        </div>
+        
+        {% if crop.status != 'harvested' %}
+        <div class="detail-card">
+            <h3>การดำเนินการ</h3>
+            {% if crop.status != 'harvested' %}
+            <form method="POST" action="{{ url_for('harvest_crop', crop_id=crop.id) }}" class="form">
+                <div class="form-group">
+                    <label for="quantity_harvested">จำนวนที่เก็บเกี่ยว (กก.):</label>
+                    <input type="number" id="quantity_harvested" name="quantity_harvested" required step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="price_per_unit">ราคาต่อหน่วย (฿):</label>
+                    <input type="number" id="price_per_unit" name="price_per_unit" required step="0.01">
+                </div>
+                <button type="submit" class="btn btn-primary">บันทึกว่าเก็บเกี่ยวแล้ว</button>
+            </form>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="detail-card">
+            <h3>Harvest Information</h3>
+            <p><strong>Harvest Date:</strong> {{ crop.actual_harvest_date.strftime('%Y-%m-%d') }}</p>
+            <p><strong>Quantity Harvested:</strong> {{ crop.quantity_harvested }} kg</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="activities-section">
+        <h2>บันทึกกิจกรรม</h2>
+        
+        {% if crop.status != 'harvested' %}
+        <form method="POST" action="{{ url_for('add_activity', crop_id=crop.id) }}" class="form">
+            <h3>เพิ่มกิจกรรมใหม่</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="activity_date">วันที่และเวลา:</label>
+                    <input type="datetime-local" id="activity_date" name="activity_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="activity_type">ประเภทกิจกรรม:</label>
+                    <select id="activity_type" name="activity_type" required>
+                        <option value="">เลือกกิจกรรม</option>
+                        <option value="watering">ให้น้ำ</option>
+                        <option value="fertilizing">ใส่ปุ๋ย</option>
+                        <option value="weeding">ถอนวัชพืช</option>
+                        <option value="spraying">พ่นยา</option>
+                        <option value="pruning">ตัดแต่ง</option>
+                        <option value="pest_control">จัดการศัตรูพืช</option>
+                        <option value="mulching">คลุมดิน</option>
+                        <option value="other">อื่น ๆ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">คำอธิบาย:</label>
+                    <input type="text" id="description" name="description" placeholder="อธิบายกิจกรรม">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantity_used">จำนวนที่ใช้:</label>
+                    <input type="number" id="quantity_used" name="quantity_used" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="unit">หน่วย:</label>
+                    <input type="text" id="unit" name="unit" placeholder="เช่น กก., ลิตร, แพ็ค, ครั้ง" >
+                </div>
+                <button type="submit" class="btn btn-primary">บันทึกกิจกรรม</button>
+            </div>
+        </form>
+        {% endif %}
+        
+        {% if activities %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Activity Type</th>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Unit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in activities %}
+                <tr>
+                    <td>{{ activity.activity_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ activity.activity_type.title() }}</td>
+                    <td>{{ activity.description or '-' }}</td>
+                    <td>{{ activity.quantity_used or '-' }}</td>
+                    <td>{{ activity.unit or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No activities recorded yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

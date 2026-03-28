@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}เข้าสู่ระบบ - ระบบจัดการฟาร์มผัก{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h1>เข้าสู่ระบบฟาร์ม</h1>
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">ชื่อผู้ใช้:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">รหัสผ่าน:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+        </form>
+        <p class="auth-link">ยังไม่มีบัญชี? <a href="{{ url_for('register') }}">สมัครสมาชิก</a></p>
+    </div>
+</div>
+{% endblock %}

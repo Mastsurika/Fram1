@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ระบบจัดการฟาร์มผัก{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    {% if session.user_id %}
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{{ url_for('dashboard') }}" class="navbar-brand">🌱 Farm Management</a>
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('dashboard') }}">แดชบอร์ด</a></li>
+                <li><a href="{{ url_for('crop_management') }}">แปลงปลูก</a></li>
+                <li><a href="{{ url_for('alerts') }}">แจ้งเตือน</a></li>
+                <li><a href="{{ url_for('activity_log') }}">กิจกรรม</a></li>
+                <li><a href="{{ url_for('inventory') }}">คลังสินค้า</a></li>
+                <li><a href="{{ url_for('financial_records') }}">บันทึกการเงิน</a></li>
+                <li><a href="{{ url_for('reports') }}">รายงาน</a></li>
+                <li><a href="{{ url_for('logout') }}" class="logout-btn">ออกจากระบบ ({{ session.username }})</a></li>
+            </ul>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <div class="main-container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <footer>
+        <p>&copy; 2024 ระบบจัดการฟาร์มผัก. สงวนลิขสิทธิ์.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}การแจ้งเตือน - ระบบจัดการฟาร์มผัก{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <h1>⚠️ การแจ้งเตือนของระบบ</h1>
+    
+    <div class="alerts-container">
+        <h2>การแจ้งเตือนการเก็บเกี่ยว</h2>
+        {% if ready_crops %}
+        <div class="alert-list">
+            {% for crop in ready_crops %}
+            <div class="alert-item alert-harvest">
+                <div class="alert-content">
+                    <h3>{{ crop.crop_name }}</h3>
+                    <p><strong>แปลง:</strong> {{ crop.field_id }}</p>
+                    <p><strong>วันที่ปลูก:</strong> {{ crop.planting_date.strftime('%Y-%m-%d') }}</p>
+                    <p><strong>วันที่คาดว่าจะเก็บเกี่ยว:</strong> {{ crop.estimated_harvest_date.strftime('%Y-%m-%d') }}</p>
+                    <p><strong>เหลือ/เลยเวลาการเก็บเกี่ยว:</strong> 
+                        {% set days_diff = (crop.estimated_harvest_date - now).days %}
+                        {% if days_diff > 0 %}
+                            {{ days_diff }} วัน
+                        {% elif days_diff == 0 %}
+                            วันนี้
+                        {% else %}
+                            {{ -days_diff }} วันเกิน
+                        {% endif %}
+                    </p>
+                    <p><strong>สถานะ:</strong> <span class="status-badge {{ crop.status }}">{{ crop.status.title() }}</span></p>
+                </div>
+                <div class="alert-action">
+                    <a href="{{ url_for('view_crop', crop_id=crop.id) }}" class="btn btn-primary">ดูและเก็บเกี่ยว</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>✓ No crops ready for harvest at the moment.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="alerts-container">
+        <h2>การแจ้งเตือนวันหมดอายุคลัง</h2>
+        {% if inventory_alerts %}
+        <div class="alert-list">
+            {% for item in inventory_alerts %}
+            <div class="alert-item alert-expiry">
+                <div class="alert-content">
+                    <h3>{{ item.product_name }}</h3>
+                    <p><strong>จำนวน:</strong> {{ item.quantity }} {{ item.unit }}</p>
+                    <p><strong>วันที่เก็บเกี่ยว:</strong> {{ item.harvest_date.strftime('%Y-%m-%d') if item.harvest_date else 'N/A' }}</p>
+                    <p><strong>วันที่หมดอายุ:</strong> {{ item.expiry_date.strftime('%Y-%m-%d') }}</p>
+                    <p><strong>เหลือเวลาถึงหมดอายุ:</strong> 
+                        {% set expiry_days = (item.expiry_date - now).days %}
+                        {{ expiry_days }} วัน
+                    </p>
+                </div>
+                <div class="alert-action">
+                    <a href="{{ url_for('inventory') }}" class="btn btn-secondary">ไปที่คลังสินค้า</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>✓ No inventory expiry alerts at the moment.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
