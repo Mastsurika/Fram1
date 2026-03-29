@@ -15,8 +15,6 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-with app.app_context():
-    db.create_all()
 
 # Database Models
 class User(db.Model):
@@ -106,10 +104,14 @@ def update_expired_inventory(user_id):
     for item in expired_items:
         item.status = 'expired'
     
-    if expired_items:
-        db.session.commit()
-        app.logger.info(f"Updated {len(expired_items)} items to expired status for user {user_id}")
-
+        if expired_items:
+            db.session.commit()
+            app.logger.info(f"Updated {len(expired_items)} items to expired status for user {user_id}")
+    
+    def create_tables():
+        with app.app_context():
+            db.create_all()
+    
 # Routes
 @app.route('/')
 def index():
